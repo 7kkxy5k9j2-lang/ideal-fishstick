@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>创意工坊</title>
+    <link rel="stylesheet" href="css/workshop.css">
+</head>
+
+<body>
+
+    <!-- 顶部导航 Tab -->
+    <div class="workshop-tabs">
+        <button class="tab-btn active" data-target="tab-bubble-maker">气泡制作</button>
+        <button class="tab-btn" data-target="tab-converter">旧版转换</button>
+    </div>
+
+    <!-- Tab 1: 旧版转换器 -->
+    <div id="tab-converter" class="tab-content">
+        <div class="conv-container">
+            <div class="conv-box">
+                <h2>1. 粘贴旧版代码</h2>
+                <textarea id="conv-input-css" class="conv-textarea" placeholder="在此粘贴您旧版本的美化代码..."></textarea>
+                <div class="conv-note">
+                    <p style="margin-bottom: 8px; color: #ff3b30; font-weight: bold;">⚠️ 仅节省替换按钮选择器的步骤，无法一键适配，还请自己多加调整</p>
+                    <strong>转换规则说明：</strong>
+                    <ul>
+                        <li><strong>图标升级：</strong><code>img</code> 图标自动替换为高清 <code>svg</code>。</li>
+                        <li><strong>按钮映射：</strong>发送键样式自动迁移至表情包/扩展按钮。</li>
+                        <li><strong>布局修正：</strong>自动移除过时的定位属性，适配新版居中布局。</li>
+                        <li><strong>智能补全：</strong>检测背景图并自动隐藏默认图标。</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="conv-controls">
+                <button id="conv-action-btn" class="conv-btn">⚡️ 一键转换 ➜</button>
+            </div>
+
+            <div class="conv-box">
+                <h2>2. 获取新版代码</h2>
+                <textarea id="conv-output-css" class="conv-textarea" placeholder="转换结果将显示在这里..."></textarea>
+                <button id="conv-copy-btn" class="conv-btn conv-copy-btn">复制结果</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tab 2: 九宫格气泡制作 -->
+    <div id="tab-bubble-maker" class="tab-content active">
+        <div class="maker-container">
+
+            <!-- 配置切换栏 -->
+            <div class="config-bar">
+                <div class="config-group">
+                    <label>归属：</label>
+                    <div class="toggle-pill">
+                        <button class="toggle-btn active" data-side="sent">我方 (Sent)</button>
+                        <button class="toggle-btn" data-side="received">AI方 (Received)</button>
+                    </div>
+                </div>
+                <div class="config-group">
+                    <label>类型：</label>
+                    <div class="toggle-pill">
+                        <button class="toggle-btn active" data-type="normal">正常 (Normal)</button>
+                        <button class="toggle-btn" data-type="first">首发 (First)</button>
+                        <button class="toggle-btn" data-type="consecutive">连发 (Consecutive)</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 1. 素材导入 -->
+            <div class="maker-section upload-section">
+                <div class="upload-box" id="upload-drop-zone">
+                    <div class="upload-icon">🖼️</div>
+                    <p>点击上传 <span id="current-config-name">我方-正常</span> 图片</p>
+                    <input type="file" id="bubble-file-input" accept="image/*" hidden>
+                </div>
+                <div class="url-input-group">
+                    <input type="text" id="bubble-url-input" placeholder="或粘贴图片 URL">
+                    <button id="bubble-load-url-btn">加载</button>
+                    <button id="bubble-reset-btn" class="danger-btn" title="重置当前配置">🗑️</button>
+                </div>
+                <div class="api-upload-group" style="margin-top: 10px; display: flex; gap: 10px; align-items: center;">
+                    <button id="imgbb-upload-btn" class="conv-btn" style="flex: 1; background: #2c3e50;">☁️ 一键上传到图床</button>
+                    <button id="imgbb-setting-btn" class="icon-btn" title="设置 ImgBB API Key" style="padding: 8px; background: none; border: 1px solid var(--border); border-radius: 6px;">⚙️</button>
+                </div>
+            </div>
+
+            <!-- 编辑器核心区域 -->
+            <div class="editor-layout" id="editor-workspace" style="display: none;">
+
+                <!-- 左侧：切割与参数 -->
+                <div class="editor-panel">
+
+                    <!-- 参数 Tab 导航 -->
+                    <div class="param-tabs">
+                        <button class="param-tab-btn active" data-target="pt-slice">✂️ 切割</button>
+                        <button class="param-tab-btn" data-target="pt-style">🎨 外观</button>
+                        <button class="param-tab-btn" data-target="pt-spacing">📐 间距</button>
+                    </div>
+
+                    <!-- Tab 1: 切割 -->
+                    <div id="pt-slice" class="param-tab-content active">
+                        <div class="slice-editor-container">
+                            <h3>1. 设定切割线 (Slice)</h3>
+                            <div class="slice-canvas-wrapper" id="slice-wrapper">
+                                <img id="slice-img" src="" alt="Source">
+                                <!-- 切割线 -->
+                                <div class="slice-line horizontal" id="slice-line-top"></div>
+                                <div class="slice-line horizontal" id="slice-line-bottom"></div>
+                                <div class="slice-line vertical" id="slice-line-left"></div>
+                                <div class="slice-line vertical" id="slice-line-right"></div>
+                            </div>
+                            <div class="control-group-grid">
+                                <div class="control-item">
+                                    <label>上 <span id="val-slice-top">0</span></label>
+                                    <input type="range" id="input-slice-top" min="0" value="0">
+                                </div>
+                                <div class="control-item">
+                                    <label>下 <span id="val-slice-bottom">0</span></label>
+                                    <input type="range" id="input-slice-bottom" min="0" value="0">
+                                </div>
+                                <div class="control-item">
+                                    <label>左 <span id="val-slice-left">0</span></label>
+                                    <input type="range" id="input-slice-left" min="0" value="0">
+                                </div>
+                                <div class="control-item">
+                                    <label>右 <span id="val-slice-right">0</span></label>
+                                    <input type="range" id="input-slice-right" min="0" value="0">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 移动到这里的 Border Width -->
+                        <div class="control-section">
+                            <div class="section-header">
+                                <span>缩放 / 边框粗细</span>
+                                <span class="val-display" id="val-border-width">20px</span>
+                            </div>
+                            <input type="range" id="input-border-width" min="0" max="100" value="20" class="full-width-range">
+                            <div style="margin-top: 10px; display: flex; align-items: center; gap: 8px;">
+                                <input type="checkbox" id="input-lock-ratio" style="width: 16px; height: 16px;">
+                                <label for="input-lock-ratio" style="font-size: 13px; color: var(--text);">🔒 锁定原始比例 (防止变形)</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tab 2: 外观 -->
+                    <div id="pt-style" class="param-tab-content">
+                        <div class="params-container">
+                            <h3>2. 外观样式</h3>
+
+                            <div class="control-section">
+                                <div class="section-header">
+                                    <span>装饰外溢 (Outset)</span>
+                                    <button id="btn-auto-outset" style="font-size: 12px; padding: 2px 8px; border: 1px solid var(--primary); color: var(--primary); background: none; border-radius: 4px; cursor: pointer;">⚡️ 自动外推</button>
+                                </div>
+                                <div class="control-group-grid">
+                                    <div class="control-item">
+                                        <label>上 <span id="val-outset-top">0</span></label>
+                                        <input type="range" id="input-outset-top" min="0" max="100" value="0">
+                                    </div>
+                                    <div class="control-item">
+                                        <label>下 <span id="val-outset-bottom">0</span></label>
+                                        <input type="range" id="input-outset-bottom" min="0" max="100" value="0">
+                                    </div>
+                                    <div class="control-item">
+                                        <label>左 <span id="val-outset-left">0</span></label>
+                                        <input type="range" id="input-outset-left" min="0" max="100" value="0">
+                                    </div>
+                                    <div class="control-item">
+                                        <label>右 <span id="val-outset-right">0</span></label>
+                                        <input type="range" id="input-outset-right" min="0" max="100" value="0">
+                                    </div>
+                                </div>
+                                <p class="hint-text">让头像/装饰物延伸到气泡外部，防止变形</p>
+                            </div>
+
+                            <div class="control-section">
+                                <div class="section-header">
+                                    <span>文字侵入 (Text Inset)</span>
+                                    <span class="val-display" id="val-text-inset">0px</span>
+                                </div>
+                                <input type="range" id="input-text-inset" min="0" max="50" value="0" class="full-width-range">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tab 3: 间距 -->
+                    <div id="pt-spacing" class="param-tab-content">
+                        <div class="params-container">
+                            <h3>3. 间距调整</h3>
+
+                            <div class="control-section">
+                                <div class="section-header">
+                                    <span>文字安全区 (Padding)</span>
+                                </div>
+                                <div class="control-group-grid">
+                                    <div class="control-item">
+                                        <label>上 <span id="val-pad-top">10</span></label>
+                                        <input type="range" id="input-pad-top" min="0" max="100" value="10">
+                                    </div>
+                                    <div class="control-item">
+                                        <label>下 <span id="val-pad-bottom">10</span></label>
+                                        <input type="range" id="input-pad-bottom" min="0" max="100" value="10">
+                                    </div>
+                                    <div class="control-item">
+                                        <label>左 <span id="val-pad-left">10</span></label>
+                                        <input type="range" id="input-pad-left" min="0" max="100" value="10">
+                                    </div>
+                                    <div class="control-item">
+                                        <label>右 <span id="val-pad-right">10</span></label>
+                                        <input type="range" id="input-pad-right" min="0" max="100" value="10">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="control-section" id="margin-control-section">
+                                <div class="section-header">
+                                    <span>连发间距 (Margin Top)</span>
+                                    <span class="val-display" id="val-margin-top">0px</span>
+                                </div>
+                                <input type="range" id="input-margin-top" min="-20" max="20" value="0" class="full-width-range">
+                                <p class="hint-text" id="margin-hint">负值可以让连发气泡更紧凑</p>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- 右侧：实时预览与导出 -->
+                <div class="preview-panel">
+                    <div class="preview-header">
+                        <h3>3. 实时预览</h3>
+                        <div class="bg-toggle">
+                            <button class="bg-btn active" data-bg="#f2f2f7" style="background:#f2f2f7;"></button>
+                            <button class="bg-btn" data-bg="#ffffff" style="background:#ffffff; border:1px solid #eee;"></button>
+                            <button class="bg-btn" data-bg="#000000" style="background:#000000;"></button>
+                        </div>
+                    </div>
+
+                    <!-- 动态样式注入点 -->
+                    <style id="preview-style"></style>
+
+                    <div class="preview-stage" id="preview-stage">
+                        <!-- 模拟真实聊天结构 -->
+                        <div class="preview-chat-container" id="preview-chat-container">
+                            <!-- JS 动态生成 -->
+                        </div>
+                    </div>
+
+                    <!-- 移动到这里的文字颜色 -->
+                    <div class="control-section" style="margin-bottom: 20px;">
+                        <div class="section-header">
+                            <span>文字颜色 (Text Color)</span>
+                        </div>
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            <input type="color" id="input-text-color" value="#000000" style="height: 38px; width: 60px; padding: 0; border: none; background: none; cursor: pointer;">
+                            <input type="text" id="input-text-color-hex" value="#000000" style="flex: 1; padding: 8px; border: 1px solid var(--border); border-radius: 6px; font-family: monospace;">
+                        </div>
+                    </div>
+
+                    <div class="export-section">
+                        <h3>4. 导出 CSS</h3>
+                        <div class="url-override-group" style="margin-bottom: 10px;">
+                            <input type="text" id="css-url-override" placeholder="在此输入图片链接，可替换 CSS 中的 URL" style="width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 6px; font-size: 12px;">
+                        </div>
+                        <textarea id="export-css" readonly></textarea>
+                        <button id="copy-css-btn" class="conv-btn full-width">复制 CSS 代码</button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script src="js/workshop.js"></script>
+</body>
+
+</html>
